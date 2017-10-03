@@ -127,6 +127,16 @@ import {utils} from '../utils/utils';
     :host(:hover) .gridster-item-resizable-handler.handle-se {
       border-color: transparent transparent #ccc
     }
+
+    .gridster-item-inner {
+     position: absolute;
+     background: #fff;     
+     top: 10px;
+     bottom: 10px;
+     left: 10px;
+     right: 10px;          
+     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
