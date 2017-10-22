@@ -1,0 +1,35 @@
+import { OnInit, AfterViewInit, OnDestroy, ElementRef, NgZone, EventEmitter } from '@angular/core';
+import 'rxjs/add/operator/takeUntil';
+import 'rxjs/add/observable/fromEvent';
+import { GridsterService } from './gridster.service';
+import { IGridsterOptions } from './IGridsterOptions';
+import { IGridsterDraggableOptions } from './IGridsterDraggableOptions';
+import { GridsterPrototypeService } from './gridster-prototype/gridster-prototype.service';
+import { GridsterOptions } from './GridsterOptions';
+export declare class GridsterComponent implements OnInit, AfterViewInit, OnDestroy {
+    private zone;
+    private gridsterPrototype;
+    options: IGridsterOptions;
+    optionsChange: EventEmitter<any>;
+    draggableOptions: IGridsterDraggableOptions;
+    $positionHighlight: any;
+    isDragging: boolean;
+    isResizing: boolean;
+    gridster: GridsterService;
+    $element: HTMLElement;
+    gridsterOptions: GridsterOptions;
+    private subscribtions;
+    constructor(zone: NgZone, elementRef: ElementRef, gridster: GridsterService, gridsterPrototype: GridsterPrototypeService);
+    ngOnInit(): void;
+    ngAfterViewInit(): void;
+    ngOnDestroy(): void;
+    setOption(name: string, value: any): this;
+    reload(): this;
+    updateGridsterElementData(): void;
+    private getScrollPositionFromParents(element, data?);
+    private connectGridsterPrototype();
+    private enableDraggable();
+    private disableDraggable();
+    private enableResizable();
+    private disableResizable();
+}
