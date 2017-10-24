@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var DraggableEvent = (function () {
     function DraggableEvent(event) {
         if (event.touches) {

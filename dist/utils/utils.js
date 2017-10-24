@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.utils = {
     setCssElementPosition: function ($element, position) {
         $element.style.left = position.x + 'px';

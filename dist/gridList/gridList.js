@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var GridCol = function (lanes) {
     for (var i = 0; i < lanes; i++) {
         this.push(null);

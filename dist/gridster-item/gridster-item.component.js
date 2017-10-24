@@ -1,16 +1,5 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
+Object.defineProperty(exports, "__esModule", { value: true });
 var core_1 = require("@angular/core");
 require("rxjs/Rx");
 var gridster_service_1 = require("../gridster.service");
@@ -448,138 +437,50 @@ var GridsterItemComponent = (function () {
     };
     return GridsterItemComponent;
 }());
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "x", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "xChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "y", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "yChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "xSm", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "xSmChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "ySm", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "ySmChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "xMd", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "xMdChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "yMd", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "yMdChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "xLg", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "xLgChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "yLg", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "yLgChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "xXl", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "xXlChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "yXl", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "yXlChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "w", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "wChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemComponent.prototype, "h", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "hChange", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "change", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "dragAndDrop", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "resizable", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "options", void 0);
-__decorate([
-    core_1.HostBinding('class.is-dragging'),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "isDragging", void 0);
-__decorate([
-    core_1.HostBinding('class.is-resizing'),
-    __metadata("design:type", Object)
-], GridsterItemComponent.prototype, "isResizing", void 0);
-GridsterItemComponent = __decorate([
-    core_1.Component({
-        selector: 'gridster-item',
-        template: "<div class=\"gridster-item-inner\">\n      <ng-content></ng-content>\n      <div class=\"gridster-item-resizable-handler handle-s\"></div>\n      <div class=\"gridster-item-resizable-handler handle-e\"></div>\n      <div class=\"gridster-item-resizable-handler handle-n\"></div>\n      <div class=\"gridster-item-resizable-handler handle-w\"></div>\n      <div class=\"gridster-item-resizable-handler handle-se\"></div>\n      <div class=\"gridster-item-resizable-handler handle-ne\"></div>\n      <div class=\"gridster-item-resizable-handler handle-sw\"></div>\n      <div class=\"gridster-item-resizable-handler handle-nw\"></div>\n    </div>",
-        styles: ["\n    :host {\n        display: block;\n        position: absolute;\n        top: 0;\n        left: 0;\n        z-index: 1;\n        transition: all 200ms ease;\n        transition-property: left, top;\n    }\n\n    :host-context(.css-transform)  {\n        transition-property: transform;\n    }\n\n    :host.is-dragging, :host.is-resizing {\n        -webkit-transition: none;\n        transition: none;\n        z-index: 9999;\n    }\n\n    :host.no-transition {\n        -webkit-transition: none;\n        transition: none;\n    }\n    .gridster-item-resizable-handler {\n        position: absolute;\n        z-index: 2;\n        display: none;\n    }\n\n    .gridster-item-resizable-handler.handle-n {\n      cursor: n-resize;\n      height: 10px;\n      right: 0;\n      top: 0;\n      left: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-e {\n      cursor: e-resize;\n      width: 10px;\n      bottom: 0;\n      right: 0;\n      top: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-s {\n      cursor: s-resize;\n      height: 10px;\n      right: 0;\n      bottom: 0;\n      left: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-w {\n      cursor: w-resize;\n      width: 10px;\n      left: 0;\n      top: 0;\n      bottom: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-ne {\n      cursor: ne-resize;\n      width: 10px;\n      height: 10px;\n      right: 0;\n      top: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-nw {\n      cursor: nw-resize;\n      width: 10px;\n      height: 10px;\n      left: 0;\n      top: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-se {\n      cursor: se-resize;\n      width: 0;\n      height: 0;\n      right: 0;\n      bottom: 0;\n      border-style: solid;\n      border-width: 0 0 10px 10px;\n      border-color: transparent;\n    }\n\n    .gridster-item-resizable-handler.handle-sw {\n      cursor: sw-resize;\n      width: 10px;\n      height: 10px;\n      left: 0;\n      bottom: 0;\n    }\n\n    :host(:hover) .gridster-item-resizable-handler.handle-se {\n      border-color: transparent transparent #ccc\n    }\n\n    .gridster-item-inner {\n     position: absolute;\n     background: #fff;     \n     top: 10px;\n     bottom: 10px;\n     left: 10px;\n     right: 10px;          \n     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);\n    }\n    "],
-        changeDetection: core_1.ChangeDetectionStrategy.OnPush
-    }),
-    __param(1, core_1.Inject(core_1.ElementRef)),
-    __param(2, core_1.Inject(gridster_service_1.GridsterService)),
-    __metadata("design:paramtypes", [core_1.NgZone,
-        core_1.ElementRef,
-        gridster_service_1.GridsterService])
-], GridsterItemComponent);
+GridsterItemComponent.decorators = [
+    { type: core_1.Component, args: [{
+                selector: 'gridster-item',
+                template: "<div class=\"gridster-item-inner\">\n      <ng-content></ng-content>\n      <div class=\"gridster-item-resizable-handler handle-s\"></div>\n      <div class=\"gridster-item-resizable-handler handle-e\"></div>\n      <div class=\"gridster-item-resizable-handler handle-n\"></div>\n      <div class=\"gridster-item-resizable-handler handle-w\"></div>\n      <div class=\"gridster-item-resizable-handler handle-se\"></div>\n      <div class=\"gridster-item-resizable-handler handle-ne\"></div>\n      <div class=\"gridster-item-resizable-handler handle-sw\"></div>\n      <div class=\"gridster-item-resizable-handler handle-nw\"></div>\n    </div>",
+                styles: ["\n    :host {\n        display: block;\n        position: absolute;\n        top: 0;\n        left: 0;\n        z-index: 1;\n        transition: all 200ms ease;\n        transition-property: left, top;\n    }\n\n    :host-context(.css-transform)  {\n        transition-property: transform;\n    }\n\n    :host.is-dragging, :host.is-resizing {\n        -webkit-transition: none;\n        transition: none;\n        z-index: 9999;\n    }\n\n    :host.no-transition {\n        -webkit-transition: none;\n        transition: none;\n    }\n    .gridster-item-resizable-handler {\n        position: absolute;\n        z-index: 2;\n        display: none;\n    }\n\n    .gridster-item-resizable-handler.handle-n {\n      cursor: n-resize;\n      height: 10px;\n      right: 0;\n      top: 0;\n      left: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-e {\n      cursor: e-resize;\n      width: 10px;\n      bottom: 0;\n      right: 0;\n      top: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-s {\n      cursor: s-resize;\n      height: 10px;\n      right: 0;\n      bottom: 0;\n      left: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-w {\n      cursor: w-resize;\n      width: 10px;\n      left: 0;\n      top: 0;\n      bottom: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-ne {\n      cursor: ne-resize;\n      width: 10px;\n      height: 10px;\n      right: 0;\n      top: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-nw {\n      cursor: nw-resize;\n      width: 10px;\n      height: 10px;\n      left: 0;\n      top: 0;\n    }\n\n    .gridster-item-resizable-handler.handle-se {\n      cursor: se-resize;\n      width: 0;\n      height: 0;\n      right: 0;\n      bottom: 0;\n      border-style: solid;\n      border-width: 0 0 10px 10px;\n      border-color: transparent;\n    }\n\n    .gridster-item-resizable-handler.handle-sw {\n      cursor: sw-resize;\n      width: 10px;\n      height: 10px;\n      left: 0;\n      bottom: 0;\n    }\n\n    :host(:hover) .gridster-item-resizable-handler.handle-se {\n      border-color: transparent transparent #ccc\n    }\n\n    .gridster-item-inner {\n     position: absolute;\n     background: #fff;     \n     top: 10px;\n     bottom: 10px;\n     left: 10px;\n     right: 10px;          \n     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);\n    }\n    "],
+                changeDetection: core_1.ChangeDetectionStrategy.OnPush
+            },] },
+];
+GridsterItemComponent.ctorParameters = function () { return [
+    { type: core_1.NgZone, },
+    { type: core_1.ElementRef, decorators: [{ type: core_1.Inject, args: [core_1.ElementRef,] },] },
+    { type: gridster_service_1.GridsterService, decorators: [{ type: core_1.Inject, args: [gridster_service_1.GridsterService,] },] },
+]; };
+GridsterItemComponent.propDecorators = {
+    'x': [{ type: core_1.Input },],
+    'xChange': [{ type: core_1.Output },],
+    'y': [{ type: core_1.Input },],
+    'yChange': [{ type: core_1.Output },],
+    'xSm': [{ type: core_1.Input },],
+    'xSmChange': [{ type: core_1.Output },],
+    'ySm': [{ type: core_1.Input },],
+    'ySmChange': [{ type: core_1.Output },],
+    'xMd': [{ type: core_1.Input },],
+    'xMdChange': [{ type: core_1.Output },],
+    'yMd': [{ type: core_1.Input },],
+    'yMdChange': [{ type: core_1.Output },],
+    'xLg': [{ type: core_1.Input },],
+    'xLgChange': [{ type: core_1.Output },],
+    'yLg': [{ type: core_1.Input },],
+    'yLgChange': [{ type: core_1.Output },],
+    'xXl': [{ type: core_1.Input },],
+    'xXlChange': [{ type: core_1.Output },],
+    'yXl': [{ type: core_1.Input },],
+    'yXlChange': [{ type: core_1.Output },],
+    'w': [{ type: core_1.Input },],
+    'wChange': [{ type: core_1.Output },],
+    'h': [{ type: core_1.Input },],
+    'hChange': [{ type: core_1.Output },],
+    'change': [{ type: core_1.Output },],
+    'dragAndDrop': [{ type: core_1.Input },],
+    'resizable': [{ type: core_1.Input },],
+    'options': [{ type: core_1.Input },],
+    'isDragging': [{ type: core_1.HostBinding, args: ['class.is-dragging',] },],
+    'isResizing': [{ type: core_1.HostBinding, args: ['class.is-resizing',] },],
+};
 exports.GridsterItemComponent = GridsterItemComponent;
 //# sourceMappingURL=gridster-item.component.js.map

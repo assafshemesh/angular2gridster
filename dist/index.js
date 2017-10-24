@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var gridster_module_1 = require("./gridster.module");
 exports.GridsterModule = gridster_module_1.GridsterModule;
 var gridster_component_1 = require("./gridster.component");

@@ -1,13 +1,5 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
+Object.defineProperty(exports, "__esModule", { value: true });
 var core_1 = require("@angular/core");
 var Observable_1 = require("rxjs/Observable");
 require("rxjs/add/observable/of");
@@ -199,49 +191,26 @@ var GridsterItemPrototypeDirective = (function () {
     };
     return GridsterItemPrototypeDirective;
 }());
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "drop", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "start", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "cancel", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "enter", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "out", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "data", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterItemPrototypeDirective.prototype, "config", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemPrototypeDirective.prototype, "w", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Number)
-], GridsterItemPrototypeDirective.prototype, "h", void 0);
-GridsterItemPrototypeDirective = __decorate([
-    core_1.Directive({
-        selector: '[gridsterItemPrototype]'
-    }),
-    __metadata("design:paramtypes", [core_1.NgZone,
-        core_1.ElementRef,
-        gridster_prototype_service_1.GridsterPrototypeService])
-], GridsterItemPrototypeDirective);
+GridsterItemPrototypeDirective.decorators = [
+    { type: core_1.Directive, args: [{
+                selector: '[gridsterItemPrototype]'
+            },] },
+];
+GridsterItemPrototypeDirective.ctorParameters = function () { return [
+    { type: core_1.NgZone, },
+    { type: core_1.ElementRef, },
+    { type: gridster_prototype_service_1.GridsterPrototypeService, },
+]; };
+GridsterItemPrototypeDirective.propDecorators = {
+    'drop': [{ type: core_1.Output },],
+    'start': [{ type: core_1.Output },],
+    'cancel': [{ type: core_1.Output },],
+    'enter': [{ type: core_1.Output },],
+    'out': [{ type: core_1.Output },],
+    'data': [{ type: core_1.Input },],
+    'config': [{ type: core_1.Input },],
+    'w': [{ type: core_1.Input },],
+    'h': [{ type: core_1.Input },],
+};
 exports.GridsterItemPrototypeDirective = GridsterItemPrototypeDirective;
 //# sourceMappingURL=gridster-item-prototype.directive.js.map

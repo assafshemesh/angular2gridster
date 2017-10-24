@@ -1,13 +1,5 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
+Object.defineProperty(exports, "__esModule", { value: true });
 var core_1 = require("@angular/core");
 var Observable_1 = require("rxjs/Observable");
 require("rxjs/add/operator/takeUntil");
@@ -189,41 +181,28 @@ var GridsterComponent = (function () {
     };
     return GridsterComponent;
 }());
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterComponent.prototype, "options", void 0);
-__decorate([
-    core_1.Output(),
-    __metadata("design:type", Object)
-], GridsterComponent.prototype, "optionsChange", void 0);
-__decorate([
-    core_1.Input(),
-    __metadata("design:type", Object)
-], GridsterComponent.prototype, "draggableOptions", void 0);
-__decorate([
-    core_1.ViewChild('positionHighlight'),
-    __metadata("design:type", Object)
-], GridsterComponent.prototype, "$positionHighlight", void 0);
-__decorate([
-    core_1.HostBinding('class.gridster--dragging'),
-    __metadata("design:type", Object)
-], GridsterComponent.prototype, "isDragging", void 0);
-__decorate([
-    core_1.HostBinding('class.gridster--resizing'),
-    __metadata("design:type", Object)
-], GridsterComponent.prototype, "isResizing", void 0);
-GridsterComponent = __decorate([
-    core_1.Component({
-        selector: 'gridster',
-        template: "<div class=\"gridster-container\">\n      <ng-content></ng-content>\n      <div class=\"position-highlight\" style=\"display:none;\" #positionHighlight>\n        <div class=\"inner\"></div>\n      </div>\n    </div>",
-        styles: ["\n    :host {\n        position: relative;\n        display: block;\n        left: 0;\n        width: 100%;\n    }\n\n    :host.gridster--dragging {\n        -moz-user-select: none;\n        -khtml-user-select: none;\n        -webkit-user-select: none;\n        -ms-user-select: none;\n        user-select: none;\n    }\n\n    .gridster-container {\n        position: relative;\n        width: 100%;\n        list-style: none;\n        -webkit-transition: width 0.2s, height 0.2s;\n        transition: width 0.2s, height 0.2s;\n    }\n\n    .position-highlight {\n        display: block;\n        position: absolute;\n        z-index: 1;\n    }\n    "],
-        providers: [gridster_service_1.GridsterService],
-        changeDetection: core_1.ChangeDetectionStrategy.OnPush
-    }),
-    __metadata("design:paramtypes", [core_1.NgZone,
-        core_1.ElementRef, gridster_service_1.GridsterService,
-        gridster_prototype_service_1.GridsterPrototypeService])
-], GridsterComponent);
+GridsterComponent.decorators = [
+    { type: core_1.Component, args: [{
+                selector: 'gridster',
+                template: "<div class=\"gridster-container\">\n      <ng-content></ng-content>\n      <div class=\"position-highlight\" style=\"display:none;\" #positionHighlight>\n        <div class=\"inner\"></div>\n      </div>\n    </div>",
+                styles: ["\n    :host {\n        position: relative;\n        display: block;\n        left: 0;\n        width: 100%;\n    }\n\n    :host.gridster--dragging {\n        -moz-user-select: none;\n        -khtml-user-select: none;\n        -webkit-user-select: none;\n        -ms-user-select: none;\n        user-select: none;\n    }\n\n    .gridster-container {\n        position: relative;\n        width: 100%;\n        list-style: none;\n        -webkit-transition: width 0.2s, height 0.2s;\n        transition: width 0.2s, height 0.2s;\n    }\n\n    .position-highlight {\n        display: block;\n        position: absolute;\n        z-index: 1;\n    }\n    "],
+                providers: [gridster_service_1.GridsterService],
+                changeDetection: core_1.ChangeDetectionStrategy.OnPush
+            },] },
+];
+GridsterComponent.ctorParameters = function () { return [
+    { type: core_1.NgZone, },
+    { type: core_1.ElementRef, },
+    { type: gridster_service_1.GridsterService, },
+    { type: gridster_prototype_service_1.GridsterPrototypeService, },
+]; };
+GridsterComponent.propDecorators = {
+    'options': [{ type: core_1.Input },],
+    'optionsChange': [{ type: core_1.Output },],
+    'draggableOptions': [{ type: core_1.Input },],
+    '$positionHighlight': [{ type: core_1.ViewChild, args: ['positionHighlight',] },],
+    'isDragging': [{ type: core_1.HostBinding, args: ['class.gridster--dragging',] },],
+    'isResizing': [{ type: core_1.HostBinding, args: ['class.gridster--resizing',] },],
+};
 exports.GridsterComponent = GridsterComponent;
 //# sourceMappingURL=gridster.component.js.map
