@@ -1,5 +1,6 @@
-import { IGridsterOptions } from './IGridsterOptions';
 import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/distinctUntilChanged';
+import { IGridsterOptions } from './IGridsterOptions';
 export declare class GridsterOptions {
     direction: string;
     lanes: number;

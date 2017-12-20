@@ -1,5 +1,4 @@
 import { OnInit, ElementRef, EventEmitter, SimpleChanges, OnChanges, OnDestroy, AfterViewInit, NgZone } from '@angular/core';
-import 'rxjs/Rx';
 import { GridsterService } from '../gridster.service';
 import { GridListItem } from '../gridList/GridListItem';
 export declare class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
@@ -29,6 +28,8 @@ export declare class GridsterItemComponent implements OnInit, OnChanges, AfterVi
     h: number;
     hChange: EventEmitter<number>;
     change: EventEmitter<any>;
+    start: EventEmitter<any>;
+    end: EventEmitter<any>;
     dragAndDrop: boolean;
     resizable: boolean;
     options: any;
@@ -58,9 +59,14 @@ export declare class GridsterItemComponent implements OnInit, OnChanges, AfterVi
     disableResizable(): void;
     enableDragDrop(): void;
     disableDraggable(): void;
+    private getDraggableOptions();
+    private getResizableOptions();
+    private hasResizableHandle(direction);
     private setPositionsForGrid(options);
     private findPosition(options);
     private createResizeStartObject(direction);
+    private onEnd(actionType);
+    private onStart(actionType);
     private preventAnimation();
     private getResizeDirection(handler);
     private resizeElement(config);

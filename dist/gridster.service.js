@@ -8,11 +8,6 @@ var GridsterService = (function () {
         this.items = [];
         this._itemsMap = {};
         this.disabledItems = [];
-        this.draggableDefaults = {
-            zIndex: 2,
-            scroll: false,
-            containment: 'parent'
-        };
         this.isInit = false;
     }
     GridsterService.prototype.isInitialized = function () {
@@ -26,7 +21,7 @@ var GridsterService = (function () {
         if (options === void 0) { options = {}; }
         if (draggableOptions === void 0) { draggableOptions = {}; }
         this.gridsterComponent = gridsterComponent;
-        this.draggableOptions = Object.assign({}, this.draggableDefaults, draggableOptions);
+        this.draggableOptions = draggableOptions;
         this.gridsterOptions = gridsterComponent.gridsterOptions;
     };
     GridsterService.prototype.start = function () {
@@ -40,7 +35,8 @@ var GridsterService = (function () {
         setTimeout(function () {
             _this.copyItems();
             _this.fixItemsPositions();
-            _this.reflow();
+            _this.gridsterComponent.reflowGridster(true);
+            _this.gridsterComponent.setReady();
         });
     };
     GridsterService.prototype.initGridList = function () {
@@ -62,6 +58,12 @@ var GridsterService = (function () {
         this.gridsterOptions.responsiveOptions.forEach(function (options) {
             _this.gridList.fixItemsPositions(options);
         });
+        this.updateCachedItems();
+    };
+    GridsterService.prototype.removeItem = function (item) {
+        this.items.splice(this.items.indexOf(item), 1);
+        this.gridList.deleteItemPositionFromGrid(item);
+        this.removeItemFromCache(item);
     };
     GridsterService.prototype.onResizeStart = function (item) {
         this.currentElement = item.$element;
@@ -99,7 +101,6 @@ var GridsterService = (function () {
         this.currentElement = item.$element;
         this.copyItems();
         this._maxGridCols = this.gridList.grid.length;
-        this.highlightPositionForItem(item);
         this.gridsterComponent.isDragging = true;
         this.gridsterComponent.updateGridsterElementData();
     };
@@ -107,6 +108,11 @@ var GridsterService = (function () {
         var newPosition = this.snapItemPositionToGrid(item);
         if (this.dragPositionChanged(newPosition)) {
             this.previousDragPosition = newPosition;
+            if (this.options.direction === 'none' || (!this.options.floating && !item.itemPrototype)) {
+                if (!this.gridList.checkItemAboveEmptyArea(item, { x: newPosition[0], y: newPosition[1] })) {
+                    return;
+                }
+            }
             this.restoreCachedItems();
             this.gridList.generateGrid();
             this.gridList.moveItemToPosition(item, newPosition);
@@ -115,6 +121,7 @@ var GridsterService = (function () {
         }
     };
     GridsterService.prototype.onDragOut = function (item) {
+        this.restoreCachedItems();
         this.previousDragPosition = null;
         this.updateMaxItemSize();
         this.applyPositionToItems();
@@ -133,13 +140,27 @@ var GridsterService = (function () {
         this.gridList.pullItemsToLeft();
         this.gridsterComponent.isDragging = false;
     };
+    GridsterService.prototype.removeItemFromCache = function (item) {
+        var _this = this;
+        this._items = this._items
+            .filter(function (cachedItem) { return cachedItem.$element !== item.$element; });
+        Object.keys(this._itemsMap)
+            .forEach(function (breakpoint) {
+            _this._itemsMap[breakpoint] = _this._itemsMap[breakpoint]
+                .filter(function (cachedItem) { return cachedItem.$element !== item.$element; });
+        });
+    };
     GridsterService.prototype.copyItems = function () {
         var _this = this;
-        this._items = this.items.map(function (item) {
+        this._items = this.items
+            .filter(function (item) { return _this.isValidGridItem(item); })
+            .map(function (item) {
             return item.copyForBreakpoint(null);
         });
         this.gridsterOptions.responsiveOptions.forEach(function (options) {
-            _this._itemsMap[options.breakpoint] = _this.items.map(function (item) {
+            _this._itemsMap[options.breakpoint] = _this.items
+                .filter(function (item) { return _this.isValidGridItem(item); })
+                .map(function (item) {
                 return item.copyForBreakpoint(options.breakpoint);
             });
         });
@@ -149,8 +170,11 @@ var GridsterService = (function () {
         this.maxItemHeight = Math.max.apply(null, this.items.map(function (item) { return item.h; }));
     };
     GridsterService.prototype.restoreCachedItems = function () {
+        var _this = this;
         var items = this.options.breakpoint ? this._itemsMap[this.options.breakpoint] : this._items;
-        this.items.forEach(function (item) {
+        this.items
+            .filter(function (item) { return _this.isValidGridItem(item); })
+            .forEach(function (item) {
             var cachedItem = items.filter(function (cachedItm) {
                 return cachedItm.$element === item.$element;
             })[0];
@@ -161,18 +185,32 @@ var GridsterService = (function () {
             item.autoSize = cachedItem.autoSize;
         });
     };
+    GridsterService.prototype.isValidGridItem = function (item) {
+        if (this.options.direction === 'none') {
+            return !!item.itemComponent;
+        }
+        return true;
+    };
     GridsterService.prototype.calculateCellSize = function () {
         if (this.options.direction === 'horizontal') {
-            this.cellHeight = Math.floor(parseFloat(window.getComputedStyle(this.gridsterComponent.$element).height) / this.options.lanes);
-            this.cellWidth = this.cellHeight * this.options.widthHeightRatio;
+            this.cellHeight = this.calculateCellHeight();
+            this.cellWidth = this.options.cellWidth || this.cellHeight * this.options.widthHeightRatio;
         }
         else {
-            this.cellWidth = Math.floor(parseFloat(window.getComputedStyle(this.gridsterComponent.$element).width) / this.options.lanes);
-            this.cellHeight = this.cellWidth / this.options.widthHeightRatio;
+            this.cellWidth = this.calculateCellWidth();
+            this.cellHeight = this.options.cellHeight || this.cellWidth / this.options.widthHeightRatio;
         }
         if (this.options.heightToFontSizeRatio) {
             this._fontSize = this.cellHeight * this.options.heightToFontSizeRatio;
         }
+    };
+    GridsterService.prototype.calculateCellWidth = function () {
+        var gridsterWidth = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).width);
+        return Math.floor(gridsterWidth / this.options.lanes);
+    };
+    GridsterService.prototype.calculateCellHeight = function () {
+        var gridsterHeight = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).height);
+        return Math.floor(gridsterHeight / this.options.lanes);
     };
     GridsterService.prototype.applySizeToItems = function () {
         for (var i = 0; i < this.items.length; i++) {
@@ -195,11 +233,13 @@ var GridsterService = (function () {
         var child = this.gridsterComponent.$element.firstChild;
         if (this.options.direction === 'horizontal') {
             var increaseWidthWith = (increaseGridsterSize) ? this.maxItemWidth : 0;
-            child.style.height = (this.options.lanes * this.cellHeight) + 'px';
+            child.style.height = '';
+            child.style.width = ((this.gridList.grid.length + increaseWidthWith) * this.cellWidth) + 'px';
         }
-        else {
+        else if (this.gridList.grid.length) {
             var increaseHeightWith = (increaseGridsterSize) ? this.maxItemHeight : 0;
             child.style.height = ((this.gridList.grid.length + increaseHeightWith) * this.cellHeight) + 'px';
+            child.style.width = '';
         }
     };
     GridsterService.prototype.isCurrentElement = function (element) {

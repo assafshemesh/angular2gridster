@@ -9,6 +9,8 @@ require("rxjs/add/operator/takeUntil");
 require("rxjs/add/operator/map");
 require("rxjs/add/operator/scan");
 require("rxjs/add/operator/filter");
+require("rxjs/add/operator/share");
+var utils_1 = require("../utils/utils");
 var GridsterPrototypeService = (function () {
     function GridsterPrototypeService() {
         this.isDragging = false;
@@ -19,45 +21,40 @@ var GridsterPrototypeService = (function () {
     GridsterPrototypeService.prototype.observeDropOver = function (gridster) {
         var _this = this;
         return this.dragStopSubject.asObservable()
-            .filter(function (item) {
-            return _this.isInsideContainer(item.$element, gridster.gridsterComponent.$element);
-        })
-            .do(function (prototype) {
-            prototype.onDrop(gridster);
+            .filter(function (data) { return _this.isOverGridster(data.item, gridster, data.event); })
+            .do(function (data) {
+            data.item.onDrop(gridster);
         });
     };
     GridsterPrototypeService.prototype.observeDropOut = function (gridster) {
         var _this = this;
         return this.dragStopSubject.asObservable()
-            .filter(function (item) {
-            return !_this.isInsideContainer(item.$element, gridster.gridsterComponent.$element);
-        })
-            .do(function (prototype) {
-            prototype.onCancel();
+            .filter(function (data) { return !_this.isOverGridster(data.item, gridster, data.event); })
+            .do(function (data) {
+            data.item.onCancel();
         });
     };
     GridsterPrototypeService.prototype.observeDragOver = function (gridster) {
         var _this = this;
         var over = this.dragSubject.asObservable()
-            .map(function (item) {
-            return {
-                item: item,
-                isOver: _this.isInsideContainer(item.$element, gridster.gridsterComponent.$element),
-                isDrop: false
-            };
-        });
+            .map(function (data) { return ({
+            item: data.item,
+            event: data.event,
+            isOver: _this.isOverGridster(data.item, gridster, data.event),
+            isDrop: false
+        }); });
         var drop = this.dragStopSubject.asObservable()
-            .map(function (item) {
-            return {
-                item: item,
-                isOver: _this.isInsideContainer(item.$element, gridster.gridsterComponent.$element),
-                isDrop: true
-            };
-        });
+            .map(function (data) { return ({
+            item: data.item,
+            event: data.event,
+            isOver: _this.isOverGridster(data.item, gridster, data.event),
+            isDrop: true
+        }); });
         var dragExt = Observable_1.Observable.merge(this.dragStartSubject.map(function () { return ({ item: null, isOver: false, isDrop: false }); }), over, drop)
             .scan(function (prev, next) {
             return {
                 item: next.item,
+                event: next.event,
                 isOver: next.isOver,
                 isEnter: prev.isOver === false && next.isOver === true,
                 isOut: prev.isOver === true && next.isOver === false && !prev.isDrop,
@@ -66,25 +63,26 @@ var GridsterPrototypeService = (function () {
         })
             .filter(function (data) {
             return !data.isDrop;
-        });
+        }).share();
         var dragEnter = this.createDragEnterObservable(dragExt, gridster);
         var dragOut = this.createDragOutObservable(dragExt, gridster);
         var dragOver = dragEnter.switchMap(function () {
             return _this.dragSubject.asObservable()
                 .takeUntil(dragOut);
-        });
+        })
+            .map(function (data) { return data.item; });
         return { dragEnter: dragEnter, dragOut: dragOut, dragOver: dragOver };
     };
-    GridsterPrototypeService.prototype.dragItemStart = function (item) {
+    GridsterPrototypeService.prototype.dragItemStart = function (item, event) {
         this.isDragging = true;
-        this.dragStartSubject.next(item);
+        this.dragStartSubject.next({ item: item, event: event });
     };
-    GridsterPrototypeService.prototype.dragItemStop = function (item) {
+    GridsterPrototypeService.prototype.dragItemStop = function (item, event) {
         this.isDragging = false;
-        this.dragStopSubject.next(item);
+        this.dragStopSubject.next({ item: item, event: event });
     };
-    GridsterPrototypeService.prototype.updatePrototypePosition = function (item) {
-        this.dragSubject.next(item);
+    GridsterPrototypeService.prototype.updatePrototypePosition = function (item, event) {
+        this.dragSubject.next({ item: item, event: event });
     };
     GridsterPrototypeService.prototype.createDragOverObservable = function (dragIsOver, gridster) {
         return dragIsOver
@@ -122,13 +120,20 @@ var GridsterPrototypeService = (function () {
             item.onOut(gridster);
         });
     };
-    GridsterPrototypeService.prototype.isInsideContainer = function (element, containerEl) {
-        var containerRect = containerEl.getBoundingClientRect();
-        var elRect = element.getBoundingClientRect();
-        return elRect.left > containerRect.left &&
-            elRect.right < containerRect.right &&
-            elRect.top > containerRect.top &&
-            elRect.bottom < containerRect.bottom;
+    GridsterPrototypeService.prototype.isOverGridster = function (item, gridster, event) {
+        var el = item.$element;
+        var elContainer = gridster.gridsterComponent.$element;
+        var tolerance = gridster.options.tolerance;
+        switch (tolerance) {
+            case 'fit':
+                return utils_1.utils.isElementFitContainer(el, elContainer);
+            case 'intersect':
+                return utils_1.utils.isElementIntersectContainer(el, elContainer);
+            case 'touch':
+                return utils_1.utils.isElementTouchContainer(el, elContainer);
+            default:
+                return utils_1.utils.isCursorAboveElement(event, elContainer);
+        }
     };
     return GridsterPrototypeService;
 }());

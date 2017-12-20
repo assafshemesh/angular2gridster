@@ -4,6 +4,10 @@ var core_1 = require("@angular/core");
 var Observable_1 = require("rxjs/Observable");
 require("rxjs/add/operator/takeUntil");
 require("rxjs/add/observable/fromEvent");
+require("rxjs/add/operator/do");
+require("rxjs/add/operator/debounceTime");
+require("rxjs/add/operator/publish");
+var utils_1 = require("./utils/utils");
 var gridster_service_1 = require("./gridster.service");
 var gridster_prototype_service_1 = require("./gridster-prototype/gridster-prototype.service");
 var GridsterOptions_1 = require("./GridsterOptions");
@@ -12,8 +16,11 @@ var GridsterComponent = (function () {
         this.zone = zone;
         this.gridsterPrototype = gridsterPrototype;
         this.optionsChange = new core_1.EventEmitter();
+        this.ready = new core_1.EventEmitter();
+        this.reflow = new core_1.EventEmitter();
         this.isDragging = false;
         this.isResizing = false;
+        this.isReady = false;
         this.subscribtions = [];
         this.gridster = gridster;
         this.$element = elementRef.nativeElement;
@@ -49,7 +56,7 @@ var GridsterComponent = (function () {
             _this.subscribtions.push(scrollSub);
         });
     };
-    GridsterComponent.prototype.ngAfterViewInit = function () {
+    GridsterComponent.prototype.ngAfterContentInit = function () {
         this.gridster.start();
         this.updateGridsterElementData();
         this.connectGridsterPrototype();
@@ -80,7 +87,7 @@ var GridsterComponent = (function () {
         if (name === 'lanes') {
             this.gridster.options.lanes = value;
             this.gridster.gridList.fixItemsPositions(this.gridster.options);
-            this.gridster.reflow();
+            this.reflowGridster();
         }
         if (name === 'direction') {
             this.gridster.options.direction = value;
@@ -99,17 +106,52 @@ var GridsterComponent = (function () {
         var _this = this;
         setTimeout(function () {
             _this.gridster.fixItemsPositions();
-            _this.gridster.reflow();
+            _this.reflowGridster();
         });
         return this;
+    };
+    GridsterComponent.prototype.reflowGridster = function (isInit) {
+        if (isInit === void 0) { isInit = false; }
+        this.gridster.reflow();
+        this.reflow.emit({
+            isInit: isInit,
+            gridsterComponent: this
+        });
     };
     GridsterComponent.prototype.updateGridsterElementData = function () {
         this.gridster.gridsterScrollData = this.getScrollPositionFromParents(this.$element);
         this.gridster.gridsterRect = this.$element.getBoundingClientRect();
     };
+    GridsterComponent.prototype.setReady = function () {
+        var _this = this;
+        setTimeout(function () { return _this.isReady = true; });
+        this.ready.emit();
+    };
+    GridsterComponent.prototype.adjustItemsHeightToContent = function (scrollableItemElementSelector) {
+        var _this = this;
+        if (scrollableItemElementSelector === void 0) { scrollableItemElementSelector = '.gridster-item-inner'; }
+        this.gridster.items
+            .map(function (item) {
+            var scrollEl = item.$element.querySelector(scrollableItemElementSelector);
+            var contentEl = scrollEl.lastElementChild;
+            var scrollElDistance = utils_1.utils.getRelativeCoordinates(scrollEl, item.$element);
+            var scrollElRect = scrollEl.getBoundingClientRect();
+            var contentRect = contentEl.getBoundingClientRect();
+            return {
+                item: item,
+                contentHeight: contentRect.bottom - scrollElRect.top,
+                scrollElDistance: scrollElDistance
+            };
+        })
+            .forEach(function (data) {
+            data.item.h = Math.ceil(((data.contentHeight) / (_this.gridster.cellHeight - data.scrollElDistance.top)));
+        });
+        this.gridster.fixItemsPositions();
+        this.gridster.reflow();
+    };
     GridsterComponent.prototype.getScrollPositionFromParents = function (element, data) {
         if (data === void 0) { data = { scrollTop: 0, scrollLeft: 0 }; }
-        if (element.parentElement !== document.body) {
+        if (element.parentElement && element.parentElement !== document.body) {
             data.scrollTop += element.parentElement.scrollTop;
             data.scrollLeft += element.parentElement.scrollLeft;
             return this.getScrollPositionFromParents(element.parentElement, data);
@@ -126,20 +168,21 @@ var GridsterComponent = (function () {
             .subscribe();
         var dropOverObservable = this.gridsterPrototype.observeDropOver(this.gridster)
             .publish();
-        this.gridsterPrototype.observeDragOver(this.gridster).dragOver
+        var dragObservable = this.gridsterPrototype.observeDragOver(this.gridster);
+        dragObservable.dragOver
             .subscribe(function (prototype) {
             if (!isEntered) {
                 return;
             }
             _this.gridster.onDrag(prototype.item);
         });
-        this.gridsterPrototype.observeDragOver(this.gridster).dragEnter
+        dragObservable.dragEnter
             .subscribe(function (prototype) {
             isEntered = true;
             _this.gridster.items.push(prototype.item);
             _this.gridster.onStart(prototype.item);
         });
-        this.gridsterPrototype.observeDragOver(this.gridster).dragOut
+        dragObservable.dragOut
             .subscribe(function (prototype) {
             if (!isEntered) {
                 return;
@@ -148,13 +191,12 @@ var GridsterComponent = (function () {
             isEntered = false;
         });
         dropOverObservable
-            .subscribe(function (prototype) {
+            .subscribe(function (data) {
             if (!isEntered) {
                 return;
             }
-            _this.gridster.onStop(prototype.item);
-            var idx = _this.gridster.items.indexOf(prototype.item);
-            _this.gridster.items.splice(idx, 1);
+            _this.gridster.onStop(data.item.item);
+            _this.gridster.removeItem(data.item.item);
             isEntered = false;
         });
         dropOverObservable.connect();
@@ -199,10 +241,13 @@ GridsterComponent.ctorParameters = function () { return [
 GridsterComponent.propDecorators = {
     'options': [{ type: core_1.Input },],
     'optionsChange': [{ type: core_1.Output },],
+    'ready': [{ type: core_1.Output },],
+    'reflow': [{ type: core_1.Output },],
     'draggableOptions': [{ type: core_1.Input },],
     '$positionHighlight': [{ type: core_1.ViewChild, args: ['positionHighlight',] },],
     'isDragging': [{ type: core_1.HostBinding, args: ['class.gridster--dragging',] },],
     'isResizing': [{ type: core_1.HostBinding, args: ['class.gridster--resizing',] },],
+    'isReady': [{ type: core_1.HostBinding, args: ['class.gridster--ready',] },],
 };
 exports.GridsterComponent = GridsterComponent;
 //# sourceMappingURL=gridster.component.js.map

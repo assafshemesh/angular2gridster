@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Observable_1 = require("rxjs/Observable");
+require("rxjs/add/operator/distinctUntilChanged");
 var GridsterOptions = (function () {
     function GridsterOptions(config) {
         var _this = this;
@@ -12,7 +13,9 @@ var GridsterOptions = (function () {
             responsiveView: true,
             dragAndDrop: true,
             resizable: false,
-            useCSSTransforms: false
+            useCSSTransforms: false,
+            floating: true,
+            tolerance: 'pointer'
         };
         this.responsiveOptions = [];
         this.breakpointsMap = {

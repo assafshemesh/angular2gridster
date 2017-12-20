@@ -54,9 +54,9 @@ export declare class GridsterItemPrototypeDirective implements OnInit, OnDestroy
     private enableDragDrop();
     private setElementPosition(element, position);
     private updateParentElementData();
-    private onStart();
-    private onDrag();
-    private onStop();
+    private onStart(event);
+    private onDrag(event);
+    private onStop(event);
     private provideDragElement();
     private fixStylesForRelativeElement(el);
     private fixStylesForBodyHelper(el);

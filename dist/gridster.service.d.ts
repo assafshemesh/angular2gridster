@@ -16,7 +16,6 @@ export declare class GridsterService {
     disabledItems: Array<GridListItem>;
     options: IGridsterOptions;
     draggableOptions: IGridsterDraggableOptions;
-    draggableDefaults: IGridsterDraggableOptions;
     gridsterRect: ClientRect;
     gridsterScrollData: {
         scrollTop: number;
@@ -44,6 +43,7 @@ export declare class GridsterService {
     render(): void;
     reflow(): void;
     fixItemsPositions(): void;
+    removeItem(item: GridListItem): void;
     onResizeStart(item: GridListItem): void;
     onResizeDrag(item: GridListItem): void;
     onResizeStop(item: GridListItem): void;
@@ -51,10 +51,14 @@ export declare class GridsterService {
     onDrag(item: GridListItem): void;
     onDragOut(item: GridListItem): void;
     onStop(item: GridListItem): void;
+    private removeItemFromCache(item);
     private copyItems();
     private updateMaxItemSize();
     private restoreCachedItems();
+    private isValidGridItem(item);
     calculateCellSize(): void;
+    private calculateCellWidth();
+    private calculateCellHeight();
     private applySizeToItems();
     applyPositionToItems(increaseGridsterSize?: any): void;
     private isCurrentElement(element);

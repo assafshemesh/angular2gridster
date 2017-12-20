@@ -25,16 +25,22 @@ export declare class GridList {
     getChangedItems(initialItems: Array<GridListItem>, breakpoint?: any): Array<{
         item: GridListItem;
         changes: Array<string>;
+        isNew: boolean;
     }>;
     resolveCollisions(item: GridListItem): void;
     pullItemsToLeft(fixedItem?: any): void;
     isOverFixedArea(x: number, y: number, w: number, h: number, item?: GridListItem): boolean;
+    checkItemAboveEmptyArea(item: GridListItem, newPosition: {
+        x: number;
+        y: number;
+    }): boolean;
     fixItemsPositions(options: IGridsterOptions): void;
     findDefaultPosition(width: number, height: number): number[];
+    deleteItemPositionFromGrid(item: GridListItem): void;
     private isItemValidForGrid(item, options);
     private findDefaultPositionHorizontal(width, height);
     private findDefaultPositionVertical(width, height);
-    private checkItemsInArea(rowStart, rowEnd, colStart, colEnd);
+    private checkItemsInArea(rowStart, rowEnd, colStart, colEnd, item?);
     private sortItemsByPosition();
     private adjustSizeOfItems();
     private resetGrid();
@@ -42,7 +48,6 @@ export declare class GridList {
     private updateItemPosition(item, position);
     private updateItemSize(item, width, height);
     private markItemPositionToGrid(item);
-    private deleteItemPositionFromGrid(item);
     private ensureColumns(N);
     private getItemsCollidingWithItem(item);
     private itemsAreColliding(item1, item2);

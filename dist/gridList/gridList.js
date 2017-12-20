@@ -109,11 +109,12 @@ var GridList = (function () {
         this.pullItemsToLeft(item);
     };
     GridList.prototype.getChangedItems = function (initialItems, breakpoint) {
-        var _this = this;
-        return initialItems
-            .map(function (initItem) {
+        return this.items.map(function (item) {
             var changes = [];
-            var item = _this.getItemByAttribute('$element', initItem.$element);
+            var initItem = initialItems.find(function (initItem) { return initItem.$element === item.$element; });
+            if (!initItem) {
+                return { item: item, changes: ['x', 'y', 'w', 'h'], isNew: true };
+            }
             if (item.getValueX(breakpoint) !== initItem.getValueX(breakpoint)) {
                 changes.push('x');
             }
@@ -126,7 +127,7 @@ var GridList = (function () {
             if (item.h !== initItem.h) {
                 changes.push('h');
             }
-            return { item: item, changes: changes };
+            return { item: item, changes: changes, isNew: false };
         })
             .filter(function (itemChange) {
             return itemChange.changes.length;
@@ -140,11 +141,17 @@ var GridList = (function () {
     };
     GridList.prototype.pullItemsToLeft = function (fixedItem) {
         var _this = this;
+        if (this.options.direction === 'none') {
+            return;
+        }
         this.sortItemsByPosition();
         this.resetGrid();
         if (fixedItem) {
             var fixedPosition = this.getItemPosition(fixedItem);
             this.updateItemPosition(fixedItem, [fixedPosition.x, fixedPosition.y]);
+        }
+        else if (!this.options.floating) {
+            return;
         }
         this.items
             .filter(function (item) {
@@ -178,6 +185,21 @@ var GridList = (function () {
             }
         }
         return false;
+    };
+    GridList.prototype.checkItemAboveEmptyArea = function (item, newPosition) {
+        var itemData = {
+            x: newPosition.x,
+            y: newPosition.y,
+            w: item.w,
+            h: item.h
+        };
+        if (!item.itemPrototype && item.x === newPosition.x && item.y === newPosition.y) {
+            return true;
+        }
+        if (this.options.direction === 'horizontal') {
+            itemData = { x: newPosition.y, y: newPosition.x, w: itemData.h, h: itemData.w };
+        }
+        return !this.checkItemsInArea(itemData.y, itemData.y + itemData.h - 1, itemData.x, itemData.x + itemData.w - 1, item);
     };
     GridList.prototype.fixItemsPositions = function (options) {
         var _this = this;
@@ -217,6 +239,20 @@ var GridList = (function () {
             return this.findDefaultPositionHorizontal(width, height);
         }
         return this.findDefaultPositionVertical(width, height);
+    };
+    GridList.prototype.deleteItemPositionFromGrid = function (item) {
+        var position = this.getItemPosition(item);
+        var x, y;
+        for (x = position.x; x < position.x + position.w; x++) {
+            if (!this.grid[x]) {
+                continue;
+            }
+            for (y = position.y; y < position.y + position.h; y++) {
+                if (this.grid[x][y] === item) {
+                    this.grid[x][y] = null;
+                }
+            }
+        }
     };
     GridList.prototype.isItemValidForGrid = function (item, options) {
         var itemData = options.direction === 'horizontal' ? {
@@ -262,10 +298,10 @@ var GridList = (function () {
         }
         return [0, this.grid.length];
     };
-    GridList.prototype.checkItemsInArea = function (rowStart, rowEnd, colStart, colEnd) {
+    GridList.prototype.checkItemsInArea = function (rowStart, rowEnd, colStart, colEnd, item) {
         for (var i = rowStart; i <= rowEnd; i++) {
             for (var j = colStart; j <= colEnd; j++) {
-                if (this.grid[i] && this.grid[i][j]) {
+                if (this.grid[i] && this.grid[i][j] && (item ? this.grid[i][j] !== item : true)) {
                     return true;
                 }
             }
@@ -354,20 +390,6 @@ var GridList = (function () {
             }
         }
     };
-    GridList.prototype.deleteItemPositionFromGrid = function (item) {
-        var position = this.getItemPosition(item);
-        var x, y;
-        for (x = position.x; x < position.x + position.w; x++) {
-            if (!this.grid[x]) {
-                continue;
-            }
-            for (y = position.y; y < position.y + position.h; y++) {
-                if (this.grid[x][y] === item) {
-                    this.grid[x][y] = null;
-                }
-            }
-        }
-    };
     GridList.prototype.ensureColumns = function (N) {
         for (var i = 0; i < N; i++) {
             if (!this.grid[i]) {
@@ -397,15 +419,13 @@ var GridList = (function () {
         if (!collidingItems.length) {
             return true;
         }
-        var _gridList = new GridList([], this.options);
+        var _gridList = new GridList(this.items.map(function (itm) {
+            return itm.copy();
+        }), this.options);
         var leftOfItem;
         var rightOfItem;
         var aboveOfItem;
         var belowOfItem;
-        _gridList.items = this.items.map(function (itm) {
-            return itm.copy();
-        });
-        _gridList.generateGrid();
         for (var i = 0; i < collidingItems.length; i++) {
             var collidingItem = _gridList.items[collidingItems[i]], collidingPosition = this.getItemPosition(collidingItem);
             var position = this.getItemPosition(item);

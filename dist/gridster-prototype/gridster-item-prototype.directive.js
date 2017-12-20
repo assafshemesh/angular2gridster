@@ -96,7 +96,7 @@ var GridsterItemPrototypeDirective = (function () {
                 _this.$element = _this.provideDragElement();
                 _this.containerRectange = _this.$element.parentElement.getBoundingClientRect();
                 _this.updateParentElementData();
-                _this.onStart();
+                _this.onStart(event);
                 cursorToElementPosition = event.getRelativeCoordinates(_this.$element);
             });
         });
@@ -106,12 +106,12 @@ var GridsterItemPrototypeDirective = (function () {
                 x: event.clientX - cursorToElementPosition.x - _this.parentRect.left,
                 y: event.clientY - cursorToElementPosition.y - _this.parentRect.top
             });
-            _this.onDrag();
+            _this.onDrag(event);
         });
         var dragStopSub = draggable.dragStop
-            .subscribe(function () {
+            .subscribe(function (event) {
             _this.zone.run(function () {
-                _this.onStop();
+                _this.onStop(event);
                 _this.$element = null;
             });
         });
@@ -135,18 +135,18 @@ var GridsterItemPrototypeDirective = (function () {
             top: this.$element.parentElement.offsetTop
         };
     };
-    GridsterItemPrototypeDirective.prototype.onStart = function () {
+    GridsterItemPrototypeDirective.prototype.onStart = function (event) {
         this.isDragging = true;
         this.$element.style.pointerEvents = 'none';
         this.$element.style.position = 'absolute';
-        this.gridsterPrototype.dragItemStart(this);
+        this.gridsterPrototype.dragItemStart(this, event);
         this.start.emit({ item: this.item });
     };
-    GridsterItemPrototypeDirective.prototype.onDrag = function () {
-        this.gridsterPrototype.updatePrototypePosition(this);
+    GridsterItemPrototypeDirective.prototype.onDrag = function (event) {
+        this.gridsterPrototype.updatePrototypePosition(this, event);
     };
-    GridsterItemPrototypeDirective.prototype.onStop = function () {
-        this.gridsterPrototype.dragItemStop(this);
+    GridsterItemPrototypeDirective.prototype.onStop = function (event) {
+        this.gridsterPrototype.dragItemStop(this, event);
         this.isDragging = false;
         this.$element.style.pointerEvents = 'auto';
         this.$element.style.position = '';
