@@ -73,7 +73,8 @@ System.config({
 widgets: Array<any> = [...];
 gridsterOptions = {
   lanes: 2, // how many lines (grid cells) dashboard has
-  direction: 'vertical', // items floating direction: vertical/horizontal
+  direction: 'vertical', // items floating direction: vertical/horizontal/none
+  floating: false, // default=true - prevents items to float according to the direction (gravity)
   dragAndDrop: false, // possible to change items position by drag n drop
   resizable: false, // possible to resize items by drag n drop by item edge/corner
   useCSSTransforms: true, // Uses CSS3 translate() instead of position top/left - significant performance boost.
@@ -111,10 +112,29 @@ gridsterOptions = {
 
 Clone or download this repository. Demo folder is dedicated nester project build on Angular CLI. To run:
 
+Create symlink from library `src` directory to `demo/src/app/gridster` use absolute path for that:
+
+linux, macos:
 ```shell
-    cd demo
-    npm install
-    ng serve
+cd angular2gridster
+ln -s $PWD/src/ $PWD/demo/src/app/gridster
+```
+
+After that, linked directory should appear
+```
+angular2gridster
+├─ demo
+│  └─ src
+│     └─ app
+│        └─ gridster //symlink
+└─ src
+```
+
+Lunch demo app:
+
+```shell
+    npm run install-demo
+    npm run serve-demo
 ```
 
 Go to: http://localhost:4200/

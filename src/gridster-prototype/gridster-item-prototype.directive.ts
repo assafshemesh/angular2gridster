@@ -10,11 +10,11 @@ import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/takeUntil';
 
 import { GridsterPrototypeService } from './gridster-prototype.service';
-import {GridListItem} from '../gridList/GridListItem';
-import {GridsterService} from '../gridster.service';
-import {DraggableEvent} from '../utils/DraggableEvent';
-import {Draggable} from '../utils/draggable';
-import {utils} from '../utils/utils';
+import { GridListItem } from '../gridList/GridListItem';
+import { GridsterService } from '../gridster.service';
+import { DraggableEvent } from '../utils/DraggableEvent';
+import { Draggable } from '../utils/draggable';
+import { utils } from '../utils/utils';
 
 @Directive({
     selector: '[gridsterItemPrototype]'
@@ -143,7 +143,7 @@ export class GridsterItemPrototypeDirective implements OnInit, OnDestroy {
                     this.$element = this.provideDragElement();
                     this.containerRectange = this.$element.parentElement.getBoundingClientRect();
                     this.updateParentElementData();
-                    this.onStart();
+                    this.onStart(event);
 
                     cursorToElementPosition = event.getRelativeCoordinates(this.$element);
                 });
@@ -157,13 +157,13 @@ export class GridsterItemPrototypeDirective implements OnInit, OnDestroy {
                     y: event.clientY - cursorToElementPosition.y  - this.parentRect.top
                 });
 
-                this.onDrag();
+                this.onDrag(event);
             });
 
         const dragStopSub = draggable.dragStop
-            .subscribe(() => {
+            .subscribe((event: DraggableEvent) => {
                 this.zone.run(() => {
-                    this.onStop();
+                    this.onStop(event);
                     this.$element = null;
                 });
             });
@@ -192,23 +192,23 @@ export class GridsterItemPrototypeDirective implements OnInit, OnDestroy {
         };
     }
 
-    private onStart (): void {
+    private onStart (event: DraggableEvent): void {
         this.isDragging = true;
 
         this.$element.style.pointerEvents = 'none';
         this.$element.style.position = 'absolute';
 
-        this.gridsterPrototype.dragItemStart(this);
+        this.gridsterPrototype.dragItemStart(this, event);
 
         this.start.emit({item: this.item});
     }
 
-    private onDrag (): void {
-        this.gridsterPrototype.updatePrototypePosition(this);
+    private onDrag (event: DraggableEvent): void {
+        this.gridsterPrototype.updatePrototypePosition(this, event);
     }
 
-    private onStop (): void {
-        this.gridsterPrototype.dragItemStop(this);
+    private onStop (event: DraggableEvent): void {
+        this.gridsterPrototype.dragItemStop(this, event);
 
         this.isDragging = false;
         this.$element.style.pointerEvents = 'auto';

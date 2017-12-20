@@ -1,9 +1,7 @@
 import { Component, OnInit, ElementRef, Inject, Host, Input, Output, ViewChild,
     EventEmitter, SimpleChanges, OnChanges, OnDestroy, HostBinding, HostListener,
     ChangeDetectionStrategy, AfterViewInit, NgZone } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/Rx';
-import { ISubscription, Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs/Subscription';
 
 import { GridsterService } from '../gridster.service';
 import { GridListItem } from '../gridList/GridListItem';
@@ -33,15 +31,20 @@ import {utils} from '../utils/utils';
         top: 0;
         left: 0;
         z-index: 1;
+        -webkit-transition: none;
+        transition: none;
+    }
+
+    :host-context(.gridster--ready) {
         transition: all 200ms ease;
         transition-property: left, top;
     }
 
-    :host-context(.css-transform)  {
+    :host-context(.gridster--ready.css-transform)  {
         transition-property: transform;
     }
 
-    :host.is-dragging, :host.is-resizing {
+    :host-context(.gridster--ready).is-dragging, :host-context(.gridster--ready).is-resizing {
         -webkit-transition: none;
         transition: none;
         z-index: 9999;
@@ -142,37 +145,39 @@ import {utils} from '../utils/utils';
 })
 export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
     @Input() x: number;
-    @Output() xChange = new EventEmitter<number>();
+    @Output() xChange = new EventEmitter<number>(true);
     @Input() y: number;
-    @Output() yChange = new EventEmitter<number>();
+    @Output() yChange = new EventEmitter<number>(true);
 
     @Input() xSm: number;
-    @Output() xSmChange = new EventEmitter<number>();
+    @Output() xSmChange = new EventEmitter<number>(true);
     @Input() ySm: number;
-    @Output() ySmChange = new EventEmitter<number>();
+    @Output() ySmChange = new EventEmitter<number>(true);
 
     @Input() xMd: number;
-    @Output() xMdChange = new EventEmitter<number>();
+    @Output() xMdChange = new EventEmitter<number>(true);
     @Input() yMd: number;
-    @Output() yMdChange = new EventEmitter<number>();
+    @Output() yMdChange = new EventEmitter<number>(true);
 
     @Input() xLg: number;
-    @Output() xLgChange = new EventEmitter<number>();
+    @Output() xLgChange = new EventEmitter<number>(true);
     @Input() yLg: number;
-    @Output() yLgChange = new EventEmitter<number>();
+    @Output() yLgChange = new EventEmitter<number>(true);
 
     @Input() xXl: number;
-    @Output() xXlChange = new EventEmitter<number>();
+    @Output() xXlChange = new EventEmitter<number>(true);
     @Input() yXl: number;
-    @Output() yXlChange = new EventEmitter<number>();
+    @Output() yXlChange = new EventEmitter<number>(true);
 
 
     @Input() w: number;
-    @Output() wChange = new EventEmitter<number>();
+    @Output() wChange = new EventEmitter<number>(true);
     @Input() h: number;
-    @Output() hChange = new EventEmitter<number>();
+    @Output() hChange = new EventEmitter<number>(true);
 
-    @Output() change = new EventEmitter<any>();
+    @Output() change = new EventEmitter<any>(true);
+    @Output() start = new EventEmitter<any>(true);
+    @Output() end = new EventEmitter<any>(true);
 
     @Input() dragAndDrop = true;
     @Input() resizable = true;
@@ -243,12 +248,6 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
         this.h = this.h || this.options.defaultHeight;
 
         if (this.gridster.isInitialized()) {
-            if (this.x || this.x === 0) {
-                this.item.setValueX(this.x, this.gridster.options.breakpoint);
-            }
-            if (this.y || this.y === 0) {
-                this.item.setValueY(this.y, this.gridster.options.breakpoint);
-            }
             this.setPositionsOnItem();
         }
 
@@ -264,6 +263,7 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
 
         if (this.gridster.isInitialized()) {
             this.gridster.render();
+            this.gridster.updateCachedItems();
         }
     }
 
@@ -311,15 +311,11 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
     }
 
     ngOnDestroy() {
-        const index = this.gridster.items.indexOf(this.item);
-        if (index >= 0) {
-            this.gridster.items.splice(index, 1);
-        }
+        this.gridster.removeItem(this.item);
+        this.gridster.gridList.pullItemsToLeft();
+        this.gridster.render();
 
-        setTimeout(() => {
-            this.gridster.gridList.pullItemsToLeft();
-            this.gridster.render();
-        });
+        this.gridster.updateCachedItems();
 
         this.subscriptions.forEach((sub: Subscription) => {
             sub.unsubscribe();
@@ -353,10 +349,14 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
 
         this.zone.runOutsideAngular(() => {
             [].forEach.call(this.$element.querySelectorAll('.gridster-item-resizable-handler'), (handler) => {
-                handler.style.display = 'block';
-                const draggable = new Draggable(handler);
+                const direction = this.getResizeDirection(handler);
 
-                let direction;
+                if (this.hasResizableHandle(direction)) {
+                    handler.style.display = 'block';
+                }
+
+                const draggable = new Draggable(handler, this.getResizableOptions());
+
                 let startEvent;
                 let startData;
                 let cursorToElementPosition;
@@ -367,11 +367,11 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
                             this.isResizing = true;
 
                             startEvent = event;
-                            direction = this.getResizeDirection(handler);
                             startData = this.createResizeStartObject(direction);
                             cursorToElementPosition = event.getRelativeCoordinates(this.$element);
 
                             this.gridster.onResizeStart(this.item);
+                            this.onStart('resize');
                         });
                     });
 
@@ -401,6 +401,7 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
                             this.isResizing = false;
 
                             this.gridster.onResizeStop(this.item);
+                            this.onEnd('resize');
                         });
                     });
 
@@ -428,15 +429,14 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
         this.zone.runOutsideAngular(() => {
             let cursorToElementPosition;
 
-            const draggable = new Draggable(this.$element, {
-                handlerClass: this.gridster.draggableOptions.handlerClass
-            });
+            const draggable = new Draggable(this.$element, this.getDraggableOptions());
 
             const dragStartSub = draggable.dragStart
                 .subscribe((event: DraggableEvent) => {
                     this.zone.run(() => {
                         this.gridster.onStart(this.item);
                         this.isDragging = true;
+                        this.onStart('drag');
 
                         cursorToElementPosition = event.getRelativeCoordinates(this.$element);
                     });
@@ -444,11 +444,10 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
 
             const dragSub = draggable.dragMove
                 .subscribe((event: DraggableEvent) => {
-                    const scrollData = this.gridster.gridsterScrollData;
 
-                    this.positionY = (event.clientY - cursorToElementPosition.y - scrollData.scrollTop -
+                    this.positionY = (event.clientY - cursorToElementPosition.y -
                         this.gridster.gridsterRect.top);
-                    this.positionX = (event.clientX - cursorToElementPosition.x - scrollData.scrollLeft -
+                    this.positionX = (event.clientX - cursorToElementPosition.x -
                         this.gridster.gridsterRect.left);
                     this.updateElemenetPosition();
 
@@ -461,6 +460,7 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
                         this.gridster.onStop(this.item);
                         this.gridster.render();
                         this.isDragging = false;
+                        this.onEnd('drag');
                     });
                 });
 
@@ -473,6 +473,32 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
             sub.unsubscribe();
         });
         this.dragSubscriptions = [];
+    }
+
+    private getDraggableOptions() {
+        return { scrollDirection: this.gridster.options.direction, ...this.gridster.draggableOptions };
+    }
+
+    private getResizableOptions() {
+        const resizableOptions: any = {};
+
+        if (this.gridster.draggableOptions.scroll || this.gridster.draggableOptions.scroll === false) {
+            resizableOptions.scroll = this.gridster.draggableOptions.scroll;
+        }
+        if (this.gridster.draggableOptions.scrollEdge) {
+            resizableOptions.scrollEdge = this.gridster.draggableOptions.scrollEdge;
+        }
+
+        resizableOptions.scrollDirection = this.gridster.options.direction;
+
+        return resizableOptions;
+    }
+
+    private hasResizableHandle(direction: string): boolean {
+        const isItemResizable = this.gridster.options.resizable && this.item.resizable;
+        const resizeHandles = this.gridster.options.resizeHandles;
+
+        return isItemResizable && (!resizeHandles || (resizeHandles && !!resizeHandles[direction]));
     }
 
     private setPositionsForGrid(options) {
@@ -531,6 +557,14 @@ export class GridsterItemComponent implements OnInit, OnChanges, AfterViewInit, 
             scrollLeft: scrollData.scrollLeft,
             scrollTop: scrollData.scrollTop
         };
+    }
+
+    private onEnd(actionType: string): void {
+        this.end.emit({action: actionType, item: this.item});
+    }
+
+    private onStart(actionType: string): void {
+        this.start.emit({action: actionType, item: this.item});
     }
 
     /**

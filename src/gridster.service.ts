@@ -1,14 +1,10 @@
-import { EventEmitter, Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Injectable } from '@angular/core';
 import 'rxjs/add/operator/filter';
 
 
 import { GridList } from './gridList/gridList';
-import { GridsterItemComponent } from './gridster-item/gridster-item.component';
 import { IGridsterOptions } from './IGridsterOptions';
 import { IGridsterDraggableOptions } from './IGridsterDraggableOptions';
-import { GridsterPrototypeService } from './gridster-prototype/gridster-prototype.service';
-import { GridsterItemPrototypeDirective } from './gridster-prototype/gridster-item-prototype.directive';
 import { GridListItem } from './gridList/GridListItem';
 import { GridsterComponent } from './gridster.component';
 import {GridsterOptions} from './GridsterOptions';
@@ -26,11 +22,6 @@ export class GridsterService {
 
     options: IGridsterOptions;
     draggableOptions: IGridsterDraggableOptions;
-    draggableDefaults: IGridsterDraggableOptions = {
-        zIndex: 2,
-        scroll: false,
-        containment: 'parent'
-    };
 
     gridsterRect: ClientRect;
     gridsterScrollData: {scrollTop: number, scrollLeft: number};
@@ -77,8 +68,7 @@ export class GridsterService {
 
         this.gridsterComponent = gridsterComponent;
 
-        this.draggableOptions = (<any>Object).assign(
-            {}, this.draggableDefaults, draggableOptions);
+        this.draggableOptions = draggableOptions;
 
         this.gridsterOptions = gridsterComponent.gridsterOptions;
     }
@@ -100,7 +90,8 @@ export class GridsterService {
             this.copyItems();
             this.fixItemsPositions();
 
-            this.reflow();
+            this.gridsterComponent.reflowGridster(true);
+            this.gridsterComponent.setReady();
         });
     }
 
@@ -127,6 +118,14 @@ export class GridsterService {
         this.gridsterOptions.responsiveOptions.forEach((options: IGridsterOptions) => {
             this.gridList.fixItemsPositions(options);
         });
+        this.updateCachedItems();
+    }
+
+    removeItem(item: GridListItem) {
+        this.items.splice(this.items.indexOf(item), 1);
+
+        this.gridList.deleteItemPositionFromGrid(item);
+        this.removeItemFromCache(item);
     }
 
     onResizeStart(item: GridListItem) {
@@ -191,8 +190,6 @@ export class GridsterService {
 
         this._maxGridCols = this.gridList.grid.length;
 
-        this.highlightPositionForItem(item);
-
         this.gridsterComponent.isDragging = true;
         this.gridsterComponent.updateGridsterElementData();
     }
@@ -201,7 +198,13 @@ export class GridsterService {
         const newPosition = this.snapItemPositionToGrid(item);
 
         if (this.dragPositionChanged(newPosition)) {
+
             this.previousDragPosition = newPosition;
+            if (this.options.direction === 'none' || (!this.options.floating && !item.itemPrototype)) {
+                if (!this.gridList.checkItemAboveEmptyArea(item, {x: newPosition[0], y: newPosition[1]})) {
+                    return ;
+                }
+            }
 
             // Regenerate the grid with the positions from when the drag started
             this.restoreCachedItems();
@@ -219,6 +222,7 @@ export class GridsterService {
 
     onDragOut (item: GridListItem) {
 
+        this.restoreCachedItems();
         this.previousDragPosition = null;
         this.updateMaxItemSize();
         this.applyPositionToItems();
@@ -237,8 +241,6 @@ export class GridsterService {
         this.updateCachedItems();
         this.previousDragPosition = null;
 
-        // itemCtrl.isDragging = false;
-
         this.removePositionHighlight();
 
         this.gridList.pullItemsToLeft();
@@ -246,15 +248,30 @@ export class GridsterService {
         this.gridsterComponent.isDragging = false;
     }
 
+    private removeItemFromCache(item: GridListItem) {
+        this._items = this._items
+            .filter(cachedItem => cachedItem.$element !== item.$element);
+
+        Object.keys(this._itemsMap)
+            .forEach((breakpoint: string) => {
+                this._itemsMap[breakpoint] = this._itemsMap[breakpoint]
+                    .filter(cachedItem => cachedItem.$element !== item.$element);
+            });
+    }
+
     private copyItems (): void {
-        this._items = this.items.map((item: GridListItem) => {
-            return item.copyForBreakpoint(null);
-        });
+        this._items = this.items
+            .filter(item => this.isValidGridItem(item))
+            .map((item: GridListItem) => {
+                return item.copyForBreakpoint(null);
+            });
 
         this.gridsterOptions.responsiveOptions.forEach((options: IGridsterOptions) => {
-            this._itemsMap[options.breakpoint] = this.items.map((item: GridListItem) => {
-                return item.copyForBreakpoint(options.breakpoint);
-            });
+            this._itemsMap[options.breakpoint] = this.items
+                .filter(item => this.isValidGridItem(item))
+                .map((item: GridListItem) => {
+                    return item.copyForBreakpoint(options.breakpoint);
+                });
         });
     }
 
@@ -274,7 +291,9 @@ export class GridsterService {
     private restoreCachedItems() {
         const items = this.options.breakpoint ? this._itemsMap[this.options.breakpoint] : this._items;
 
-        this.items.forEach((item: GridListItem) => {
+        this.items
+            .filter(item => this.isValidGridItem(item))
+            .forEach((item: GridListItem) => {
             const cachedItem: GridListItem = items.filter(cachedItm => {
                 return cachedItm.$element === item.$element;
             })[0];
@@ -288,19 +307,41 @@ export class GridsterService {
         });
     }
 
+    /**
+     * If item should react on grid
+     * @param {GridListItem} item
+     * @returns {boolean}
+     */
+    private isValidGridItem(item: GridListItem): boolean {
+        if (this.options.direction === 'none') {
+            return !!item.itemComponent;
+        }
+        return true;
+    }
+
     calculateCellSize () {
         if (this.options.direction === 'horizontal') {
-            // TODO: get rid of window.getComputedStyle
-            this.cellHeight = Math.floor(parseFloat(window.getComputedStyle(this.gridsterComponent.$element).height) / this.options.lanes);
-            this.cellWidth = this.cellHeight * this.options.widthHeightRatio;
+            this.cellHeight = this.calculateCellHeight();
+            this.cellWidth = this.options.cellWidth || this.cellHeight * this.options.widthHeightRatio;
         } else {
-            // TODO: get rid of window.getComputedStyle
-            this.cellWidth = Math.floor(parseFloat(window.getComputedStyle(this.gridsterComponent.$element).width) / this.options.lanes);
-            this.cellHeight = this.cellWidth / this.options.widthHeightRatio;
+            this.cellWidth = this.calculateCellWidth();
+            this.cellHeight = this.options.cellHeight || this.cellWidth / this.options.widthHeightRatio;
         }
         if (this.options.heightToFontSizeRatio) {
             this._fontSize = this.cellHeight * this.options.heightToFontSizeRatio;
         }
+    }
+
+    private calculateCellWidth() {
+        const gridsterWidth = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).width);
+
+        return Math.floor( gridsterWidth / this.options.lanes);
+    }
+
+    private calculateCellHeight() {
+        const gridsterHeight = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).height);
+
+        return Math.floor( gridsterHeight / this.options.lanes);
     }
 
     private applySizeToItems () {
@@ -331,11 +372,13 @@ export class GridsterService {
         // right to allow dragging items to the end of the grid.
         if (this.options.direction === 'horizontal') {
             const increaseWidthWith = (increaseGridsterSize) ? this.maxItemWidth : 0;
-            child.style.height = (this.options.lanes * this.cellHeight) + 'px';
+            child.style.height = '';
+            child.style.width = ((this.gridList.grid.length + increaseWidthWith) * this.cellWidth) + 'px';
 
-        } else {
+        } else if (this.gridList.grid.length) {
             const increaseHeightWith = (increaseGridsterSize) ? this.maxItemHeight : 0;
             child.style.height = ((this.gridList.grid.length + increaseHeightWith) * this.cellHeight) + 'px';
+            child.style.width = '';
         }
     }
 

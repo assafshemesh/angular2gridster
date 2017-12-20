@@ -1,27 +1,53 @@
+:host {
+    position: absolute;
+    display: flex;
+    display: -webkit-inline-box;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
 h1 {
+    position: relative;
+    flex: 0;
     font-size: 22px;
     padding: 0 20px;
     height: 50px;
     margin: 0;
 }
 
+.omnibar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    position: relative;
+    flex: 0;
+    width: 100%;
+    /*overflow: hidden;*/
+}
+
 .toolbar {
     position: relative;
-    padding: 0 20px;
+    padding-left: 10px;
 }
 
 .widgetbar {
-    width: 100%;
     position: relative;
-    height: 100px;
     padding: 10px 0;
+    width: 275px;
 }
 
 .main-content {
-    position: absolute;
-    top: 200px;
-    left: 0;
     width: 100%;
+    flex: 1 0px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.dashboard {
+    flex: 1;
 }
 
 .panel-heading {

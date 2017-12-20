@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { GridsterComponent } from './gridster/gridster.component';
 import { IGridsterOptions } from './gridster/IGridsterOptions';
 import { IGridsterDraggableOptions } from './gridster/IGridsterDraggableOptions';
@@ -9,17 +9,37 @@ import { IGridsterDraggableOptions } from './gridster/IGridsterDraggableOptions'
     styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+    static X_PROPERTY_MAP: any = {
+        sm: 'xSm',
+        md: 'xMd',
+        lg: 'xLg',
+        xl: 'xXl'
+    };
+
+    static Y_PROPERTY_MAP: any = {
+        sm: 'ySm',
+        md: 'yMd',
+        lg: 'yLg',
+        xl: 'yXl'
+    };
+
     @ViewChild(GridsterComponent) gridster: GridsterComponent;
     itemOptions = {
         maxWidth: 3,
-        maxHeight: 3
+        maxHeight: 4
     };
     gridsterOptions: IGridsterOptions = {
         // core configuration is default one - for smallest view. It has hidden minWidth: 0.
         lanes: 2, // amount of lanes (cells) in the grid
         direction: 'vertical', // floating top - vertical, left - horizontal
+        floating: true,
         dragAndDrop: true, // enable/disable drag and drop for all items in grid
         resizable: true, // enable/disable resizing by drag and drop for all items in grid
+        resizeHandles: {
+            s: true,
+            e: true,
+            se: true
+        },
         widthHeightRatio: 1, // proportion between item width and height
         shrink: true,
         useCSSTransforms: true,
@@ -95,6 +115,10 @@ export class AppComponent {
         }
     ];
 
+    onReflow(event) {
+        console.log('onReflow', event);
+    }
+
     removeLine(gridster: GridsterComponent) {
         gridster.setOption('lanes', --this.gridsterOptions.lanes)
             .reload();
@@ -147,12 +171,18 @@ export class AppComponent {
 
     addWidgetFromDrag(gridster: GridsterComponent, event: any) {
         const item = event.item;
-        this.widgets.push({
-            x: item.x, y: item.y, w: item.w, h: item.h,
+        const breakpoint = gridster.options.breakpoint;
+        const widget = {
+            w: item.w, h: item.h,
             dragAndDrop: true,
             resizable: true,
-            title: 'Basic form inputs 5'
-        });
+            title: 'New widget'
+        };
+
+        widget[AppComponent.X_PROPERTY_MAP[breakpoint]] = item.x;
+        widget[AppComponent.Y_PROPERTY_MAP[breakpoint]] = item.y;
+
+        this.widgets.push(widget);
 
         console.log('add widget from drag to:', gridster);
     }
@@ -203,6 +233,10 @@ export class AppComponent {
         $event.preventDefault();
         this.widgets.splice(index, 1);
         console.log('widget remove', index);
+    }
+
+    removeAllWidgets() {
+        this.widgets = [];
     }
 
     itemChange($event: any, gridster) {

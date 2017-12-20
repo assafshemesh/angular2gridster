@@ -1,3 +1,100 @@
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/swiety85/angular2gridster/compare/v1.0.1...v1.1.0) (2017-12-13)
+
+
+### Bug Fixes
+
+* **demo:** fix wrong item position on prototype drop ([dde685c](https://github.com/swiety85/angular2gridster/commit/dde685c))
+* **drag:** Fix exceptions when dropping item prototype with touch devices ([8053e01](https://github.com/swiety85/angular2gridster/commit/8053e01))
+* **resize:** Fix initial bindings, when new item without data is added. ([7e0d0db](https://github.com/swiety85/angular2gridster/commit/7e0d0db)), closes [#158](https://github.com/swiety85/angular2gridster/issues/158)
+
+
+### Features
+
+* **demo:** Add "Remove all widgets" button to demo page ([aad2c09](https://github.com/swiety85/angular2gridster/commit/aad2c09))
+
+
+
+<a name="1.0.1"></a>
+# [1.0.1](https://github.com/swiety85/angular2gridster/compare/v1.0.0...v1.0.1) (2017-11-28)
+
+
+### Bug Fixes
+
+* **build:** fix build folder
+
+
+
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/swiety85/angular2gridster/compare/v1.0.0-alfa...v1.0.0) (2017-11-28)
+
+
+### Bug Fixes
+
+* **responsive:** Use responsive position properties for items added after gridster init ([20ddfe3](https://github.com/swiety85/angular2gridster/commit/20ddfe3)), closes [#116](https://github.com/swiety85/angular2gridster/issues/116)
+* **scroll:** Use draggable options to enable/disable scroll on resize ([7345024](https://github.com/swiety85/angular2gridster/commit/7345024))
+* **demo:** Remove directory demo/src/app/gridster/, add symlink ([06cc048](https://github.com/swiety85/angular2gridster/commit/06cc048))
+
+
+### Features
+
+* **resize:** configurable resize handlers ([f7f83b5](https://github.com/swiety85/angular2gridster/commit/f7f83b5)), closes [#135](https://github.com/swiety85/angular2gridster/issues/135)
+* **scroll:** restrict scroll direction to gridster direction ([dabcf1a](https://github.com/swiety85/angular2gridster/commit/dabcf1a)), closes [#143](https://github.com/swiety85/angular2gridster/issues/143)
+
+
+
+<a name="1.0.0-alfa"></a>
+# [1.0.0-alfa]((https://github.com/swiety85/angular2gridster/compare/0.6.9...1.0.0-alfa)) (2017-11-19)
+
+
+### Bug Fixes
+
+* **drag:** Fix problem with focused el when dragging in IE. Issue #128
+
+### Features
+
+* **drag:** Provide tolerance for gridster config. Issue #71
+* **drag:** Scroll container while dragging. Issue #27
+* **drag:** Output bindings in gridster item on drag/resize start and end
+* **resize:** Auto height for item. Issue #78
+
+
+
+<a name="0.6.9"></a>
+# [0.6.9]((https://github.com/swiety85/angular2gridster/compare/0.6.8...0.6.9)) (2017-11-04)
+
+
+### Bug Fixes
+
+* **api:** No binding update on item remove. Issue #120
+* **performance** Remove unnecessary import of entirety of Rxjs
+
+### Features
+
+* **api** Add events when reflowing grid items. Issue #115
+
+
+
+<a name="0.6.8"></a>
+# [0.6.8]((https://github.com/swiety85/angular2gridster/compare/0.6.7...0.6.8)) (2017-10-16)
+
+
+### Bug Fixes
+
+* **drag:** Fix problem with scrolling on touch devices. Issue #111
+* **drag** Fix drag position bug in scrolled container. Issue #114
+
+### Features
+
+* **drag** Options: direction: "none" and floating: false. Issue #109
+* **performance** Disable initial animation. Issue #104
+* **config** Provide option to set fixed cellWidth/cellHeight. Issue #91
+
+
 <a name="0.6.7"></a>
 # [0.6.7]((https://github.com/swiety85/angular2gridster/compare/0.6.6...0.6.7)) (2017-09-25)
 

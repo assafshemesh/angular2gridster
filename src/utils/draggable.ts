@@ -3,50 +3,61 @@ import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/merge';
+import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/share';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/skip';
 
-import {DraggableEvent} from './DraggableEvent';
-import {utils} from './utils';
+import { DraggableEvent } from './DraggableEvent';
+import { utils } from './utils';
 
 export class Draggable {
+    static SCROLL_SPEED = 20;
     element: Element;
 
     dragStart: Observable<DraggableEvent>;
     dragMove: Observable<DraggableEvent>;
     dragStop: Observable<DraggableEvent>;
-
+    // A simple requestAnimationFrame polyfill
+    private requestAnimationFrame: Function;
+    private cancelAnimationFrame: Function;
     private mousemove: Observable<{} | Event> = Observable.merge(
         Observable.fromEvent(document, 'mousemove'),
         Observable.fromEvent(document, 'touchmove', {passive: true})
     ).share();
-
     private mouseup: Observable<{} | Event> = Observable.merge(
         Observable.fromEvent(document, 'mouseup'),
         Observable.fromEvent(document, 'touchend'),
         Observable.fromEvent(document, 'touchcancel')
     ).share();
-
     private mousedown: Observable<{} | Event>;
-
     private config = {
-        handlerClass: null
+        handlerClass: null,
+        scroll: true,
+        scrollEdge: 36,
+        scrollDirection: null
     };
+    // reference to auto scrolling listeners
+    private autoScrollingInterval = [];
 
-    constructor(element: Element, config: {handlerClass?: string} = {}) {
+    constructor(element: Element, config = {}) {
         this.element = element;
         this.mousedown = Observable.merge(
             Observable.fromEvent(element, 'mousedown'),
             Observable.fromEvent(element, 'touchstart')
         ).share();
 
-        this.config.handlerClass = config.handlerClass;
+        this.config = { ...this.config, ...config };
 
         this.dragStart = this.createDragStartObservable().share();
         this.dragMove = this.createDragMoveObservable(this.dragStart);
         this.dragStop = this.createDragStopObservable(this.dragStart);
 
         this.fixProblemWithDnDForIE(element);
+
+        this.requestAnimationFrame = window.requestAnimationFrame || (callback => setTimeout(callback, 1000 / 60));
+        this.cancelAnimationFrame = window.cancelAnimationFrame || (cafID => clearTimeout(cafID));
     }
 
     private createDragStartObservable(): Observable<DraggableEvent> {
@@ -55,7 +66,9 @@ export class Draggable {
             .filter((event: DraggableEvent) => this.isDragingByHandler(event))
             .do(e => {
                 e.pauseEvent();
-                (<any>document.activeElement).blur();
+                if (document.activeElement) {
+                    (<any>document.activeElement).blur();
+                }
                 // prevents rendering performance issues while dragging item with selection inside
                 utils.clearSelection();
             })
@@ -78,14 +91,138 @@ export class Draggable {
                     .map(mm => new DraggableEvent(mm))
                     .takeUntil(this.mouseup);
             })
-            .filter(val => !!val);
+            .filter(val => !!val)
+            .do((event: DraggableEvent) => {
+                if (this.config.scroll) {
+                    this.startScroll(this.element, event);
+                }
+            });
     }
 
     private createDragStopObservable(dragStart: Observable<DraggableEvent>): Observable<any> {
         return dragStart
             .switchMap(() => {
                 return this.mouseup.take(1);
+            })
+            .map(e => new DraggableEvent(e))
+            .do(() => {
+                this.autoScrollingInterval.forEach(raf => this.cancelAnimationFrame(raf));
             });
+    }
+
+    private startScroll(item: Element, event: DraggableEvent) {
+        const scrollContainer = this.getScrollContainer(item);
+        this.autoScrollingInterval.forEach(raf => this.cancelAnimationFrame(raf));
+
+        if (scrollContainer) {
+            this.startScrollForContainer(event, scrollContainer);
+        } else {
+            this.startScrollForWindow(event);
+        }
+    }
+
+    private startScrollForContainer(event: DraggableEvent, scrollContainer: HTMLElement): void {
+
+        if (!this.config.scrollDirection || this.config.scrollDirection === 'vertical') {
+            this.startScrollVerticallyForContainer(event, scrollContainer);
+        }
+
+        if (!this.config.scrollDirection || this.config.scrollDirection === 'horizontal') {
+            this.startScrollHorizontallyForContainer(event, scrollContainer);
+        }
+    }
+
+    private startScrollVerticallyForContainer(event: DraggableEvent, scrollContainer: HTMLElement): void {
+        if (event.pageY - this.getOffset(scrollContainer).top < this.config.scrollEdge) {
+            this.startAutoScrolling(scrollContainer, -Draggable.SCROLL_SPEED, 'scrollTop');
+        } else if ((this.getOffset(scrollContainer).top + scrollContainer.getBoundingClientRect().height) -
+            event.pageY < this.config.scrollEdge) {
+
+            this.startAutoScrolling(scrollContainer, Draggable.SCROLL_SPEED, 'scrollTop');
+        }
+    }
+
+    private startScrollHorizontallyForContainer(event: DraggableEvent, scrollContainer: HTMLElement): void {
+        if (event.pageX - scrollContainer.getBoundingClientRect().left < this.config.scrollEdge) {
+            this.startAutoScrolling(scrollContainer, -Draggable.SCROLL_SPEED, 'scrollLeft');
+        } else if ((this.getOffset(scrollContainer).left + scrollContainer.getBoundingClientRect().width) -
+            event.pageX < this.config.scrollEdge) {
+
+            this.startAutoScrolling(scrollContainer, Draggable.SCROLL_SPEED, 'scrollLeft');
+        }
+    }
+
+    private startScrollForWindow(event) {
+
+        if (!this.config.scrollDirection || this.config.scrollDirection === 'vertical') {
+            this.startScrollVerticallyForWindow(event);
+        }
+
+        if (!this.config.scrollDirection || this.config.scrollDirection === 'horizontal') {
+            this.startScrollHorizontallyForWindow(event);
+        }
+    }
+
+    private startScrollVerticallyForWindow(event: DraggableEvent): void {
+        const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+
+        // NOTE: Using `window.pageYOffset` here because IE doesn't have `window.scrollY`.
+        if ((event.pageY - window.pageYOffset) < this.config.scrollEdge) {
+            this.startAutoScrolling(scrollingElement, -Draggable.SCROLL_SPEED, 'scrollTop');
+        } else if ((window.innerHeight - (event.pageY - window.pageYOffset)) < this.config.scrollEdge) {
+            this.startAutoScrolling(scrollingElement, Draggable.SCROLL_SPEED, 'scrollTop');
+        }
+    }
+
+    private startScrollHorizontallyForWindow(event: DraggableEvent): void {
+        const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+
+        // NOTE: Using `window.pageXOffset` here because IE doesn't have `window.scrollX`.
+        if ((event.pageX - window.pageXOffset) < this.config.scrollEdge) {
+            this.startAutoScrolling(scrollingElement, -Draggable.SCROLL_SPEED, 'scrollLeft');
+        } else if ((window.innerWidth - (event.pageX - window.pageXOffset)) < this.config.scrollEdge) {
+            this.startAutoScrolling(scrollingElement, Draggable.SCROLL_SPEED, 'scrollLeft');
+        }
+    }
+
+    private getScrollContainer(node): HTMLElement {
+        const nodeOuterHeight = utils.getElementOuterHeight(node);
+
+        if (node.scrollHeight > Math.ceil(nodeOuterHeight)) {
+            return node;
+        }
+
+        if (!(new RegExp('(body|html)', 'i')).test(node.parentNode.tagName)) {
+            return this.getScrollContainer(node.parentNode);
+        }
+
+        return null;
+    }
+
+    private startAutoScrolling(node, amount, direction) {
+        this.autoScrollingInterval.push(this.requestAnimationFrame(function() {
+            this.startAutoScrolling(node, amount, direction);
+        }.bind(this)));
+
+        return node[direction] += (amount * 0.25);
+    }
+
+    private getOffset (el) {
+        const rect = el.getBoundingClientRect();
+        return {
+            left: rect.left + this.getScroll('scrollLeft', 'pageXOffset'),
+            top: rect.top + this.getScroll('scrollTop', 'pageYOffset')
+        };
+    }
+
+    private getScroll (scrollProp, offsetProp) {
+        if (typeof window[offsetProp] !== 'undefined') {
+            return window[offsetProp];
+        }
+        if (document.documentElement.clientHeight) {
+            return document.documentElement[scrollProp];
+        }
+        return document.body[scrollProp];
     }
 
     private isDragingByHandler(event: DraggableEvent): boolean {
@@ -128,6 +265,39 @@ export class Draggable {
     }
 
     private fixProblemWithDnDForIE(element: Element) {
-        (<HTMLElement>element).style['touch-action'] = 'none';
+        if (this.isTouchDevice() && this.isIEorEdge()) {
+            (<HTMLElement>element).style['touch-action'] = 'none';
+        }
+    }
+
+    private isTouchDevice() {
+        return 'ontouchstart' in window  // works on most browsers
+            || navigator.maxTouchPoints; // works on IE10/11 and Surface
+    }
+
+    private isIEorEdge() {
+        const ua = window.navigator.userAgent;
+
+        const msie = ua.indexOf('MSIE ');
+        if (msie > 0) {
+            // IE 10 or older => return version number
+            return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+        }
+
+        const trident = ua.indexOf('Trident/');
+        if (trident > 0) {
+            // IE 11 => return version number
+            const rv = ua.indexOf('rv:');
+            return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+        }
+
+        const edge = ua.indexOf('Edge/');
+        if (edge > 0) {
+            // Edge (IE 12+) => return version number
+            return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+        }
+
+        // other browser
+        return false;
     }
 }

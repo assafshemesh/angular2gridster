@@ -1,7 +1,5 @@
-import { EventEmitter } from '@angular/core';
-import {GridListItem} from './GridListItem';
-import {IGridsterOptions} from '../IGridsterOptions';
-import {GridsterOptions} from '../GridsterOptions';
+import { GridListItem } from './GridListItem';
+import { IGridsterOptions } from '../IGridsterOptions';
 
 const GridCol = function (lanes) {
     for (let i = 0; i < lanes; i++) {
@@ -53,7 +51,7 @@ export class GridList {
     }
 
     /**
-     * Illustates grid as text-based table, using a number identifier for each
+     * Illustrates grid as text-based table, using a number identifier for each
      * item. E.g.
      *
      *  #|  0  1  2  3  4  5  6  7  8  9 10 11 12 13
@@ -238,13 +236,16 @@ export class GridList {
      * and list of changed properties.
      */
     getChangedItems(initialItems: Array<GridListItem>, breakpoint?): Array<{
-        item: GridListItem, changes: Array<string>
+        item: GridListItem, changes: Array<string>, isNew: boolean
     }> {
 
-        return initialItems
-            .map((initItem: GridListItem) => {
+        return this.items.map((item: GridListItem) => {
                 const changes = [];
-                const item = this.getItemByAttribute('$element', initItem.$element);
+                const initItem = initialItems.find(initItem => initItem.$element === item.$element);
+
+                if (!initItem) {
+                    return { item, changes: ['x', 'y', 'w', 'h'], isNew: true };
+                }
 
                 if (item.getValueX(breakpoint) !== initItem.getValueX(breakpoint)) {
                     changes.push('x');
@@ -259,7 +260,7 @@ export class GridList {
                     changes.push('h');
                 }
 
-                return {item, changes};
+                return { item, changes, isNew: false };
             })
             .filter((itemChange: {item: GridListItem, changes: Array<string>}) => {
                 return itemChange.changes.length;
@@ -282,6 +283,9 @@ export class GridList {
      * rest of the items will be layed around it.
      */
     pullItemsToLeft(fixedItem?) {
+        if (this.options.direction === 'none') {
+            return ;
+        }
 
         // Start a fresh grid with the fixed item already placed inside
         this.sortItemsByPosition();
@@ -291,6 +295,8 @@ export class GridList {
         if (fixedItem) {
             const fixedPosition = this.getItemPosition(fixedItem);
             this.updateItemPosition(fixedItem, [fixedPosition.x, fixedPosition.y]);
+        } else if (!this.options.floating) {
+            return ;
         }
 
         this.items
@@ -335,6 +341,29 @@ export class GridList {
             }
         }
         return false;
+    }
+
+    checkItemAboveEmptyArea(item: GridListItem, newPosition: {x: number, y: number}) {
+        let itemData = {
+            x: newPosition.x,
+            y: newPosition.y,
+            w: item.w,
+            h: item.h
+        };
+        if (!item.itemPrototype && item.x === newPosition.x && item.y === newPosition.y) {
+            return true;
+        }
+
+        if (this.options.direction === 'horizontal') {
+            itemData = {x: newPosition.y, y: newPosition.x, w: itemData.h, h: itemData.w};
+        }
+        return !this.checkItemsInArea(
+            itemData.y,
+            itemData.y + itemData.h - 1,
+            itemData.x,
+            itemData.x + itemData.w - 1,
+            item
+        );
     }
 
     fixItemsPositions(options: IGridsterOptions) {
@@ -391,6 +420,30 @@ export class GridList {
         return this.findDefaultPositionVertical(width, height);
     }
 
+    deleteItemPositionFromGrid(item: GridListItem) {
+        const position = this.getItemPosition(item);
+        let x, y;
+
+        for (x = position.x; x < position.x + position.w; x++) {
+            // It can happen to try to remove an item from a position not generated
+            // in the grid, probably when loading a persisted grid of items. No need
+            // to create a column to be able to remove something from it, though
+            if (!this.grid[x]) {
+                continue;
+            }
+
+            for (y = position.y; y < position.y + position.h; y++) {
+                // Don't clear the cell if it's been occupied by a different widget in
+                // the meantime (e.g. when an item has been moved over this one, and
+                // thus by continuing to clear this item's previous position you would
+                // cancel the first item's move, leaving it without any position even)
+                if (this.grid[x][y] === item) {
+                    this.grid[x][y] = null;
+                }
+            }
+        }
+    }
+
     private isItemValidForGrid(item: GridListItem, options: IGridsterOptions) {
         const itemData = options.direction === 'horizontal' ? {
             x: item.getValueY(options.breakpoint),
@@ -438,10 +491,10 @@ export class GridList {
         return [ 0 , this.grid.length];
     }
 
-    private checkItemsInArea(rowStart: number, rowEnd: number, colStart: number, colEnd: number) {
+    private checkItemsInArea(rowStart: number, rowEnd: number, colStart: number, colEnd: number, item?: GridListItem) {
         for (let i = rowStart; i <= rowEnd; i++) {
             for (let j = colStart; j <= colEnd; j++) {
-                if (this.grid[i] && this.grid[i][j]) {
+                if (this.grid[i] && this.grid[i][j] && (item ? this.grid[i][j] !== item : true)) {
                     return true;
                 }
             }
@@ -596,30 +649,6 @@ export class GridList {
         }
     }
 
-    private deleteItemPositionFromGrid(item: GridListItem) {
-        const position = this.getItemPosition(item);
-        let x, y;
-
-        for (x = position.x; x < position.x + position.w; x++) {
-            // It can happen to try to remove an item from a position not generated
-            // in the grid, probably when loading a persisted grid of items. No need
-            // to create a column to be able to remove something from it, though
-            if (!this.grid[x]) {
-                continue;
-            }
-
-            for (y = position.y; y < position.y + position.h; y++) {
-                // Don't clear the cell if it's been occupied by a different widget in
-                // the meantime (e.g. when an item has been moved over this one, and
-                // thus by continuing to clear this item's previous position you would
-                // cancel the first item's move, leaving it without any position even)
-                if (this.grid[x][y] === item) {
-                    this.grid[x][y] = null;
-                }
-            }
-        }
-    }
-
     /**
      * Ensure that the grid has at least N columns available.
      */
@@ -653,7 +682,7 @@ export class GridList {
     }
 
     /**
-     * Attempt to resolve the collisions after moving a an item over one or more
+     * Attempt to resolve the collisions after moving an item over one or more
      * other items within the grid, by shifting the position of the colliding
      * items around the moving one. This might result in subsequent collisions,
      * in which case we will revert all position permutations. To be able to
@@ -666,16 +695,14 @@ export class GridList {
             return true;
         }
 
-        const _gridList = new GridList([], this.options);
+        const _gridList = new GridList(this.items.map(itm => {
+            return itm.copy();
+        }), this.options);
+
         let leftOfItem;
         let rightOfItem;
         let aboveOfItem;
         let belowOfItem;
-
-        _gridList.items = this.items.map(itm => {
-            return itm.copy();
-        });
-        _gridList.generateGrid();
 
         for (let i = 0; i < collidingItems.length; i++) {
             const collidingItem = _gridList.items[collidingItems[i]],
@@ -712,7 +739,7 @@ export class GridList {
         }
         // If we reached this point it means we managed to resolve the collisions
         // from one single iteration, just by moving the colliding items around. So
-        // we accept this scenario and marge the brached-out grid instance into the
+        // we accept this scenario and merge the branched-out grid instance into the
         // original one
 
         this.items.forEach((itm: GridListItem, idx: number) => {

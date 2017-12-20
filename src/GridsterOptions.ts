@@ -1,5 +1,6 @@
-import {IGridsterOptions} from './IGridsterOptions';
 import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/distinctUntilChanged';
+import { IGridsterOptions } from './IGridsterOptions';
 
 export class GridsterOptions {
     direction: string;
@@ -21,7 +22,9 @@ export class GridsterOptions {
         responsiveView: true,
         dragAndDrop: true,
         resizable: false,
-        useCSSTransforms: false
+        useCSSTransforms: false,
+        floating: true,
+        tolerance: 'pointer'
     };
 
     change: Observable<IGridsterOptions>;
