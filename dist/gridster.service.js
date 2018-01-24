@@ -206,7 +206,7 @@ var GridsterService = (function () {
     };
     GridsterService.prototype.calculateCellWidth = function () {
         var gridsterWidth = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).width);
-        return Math.floor(gridsterWidth / this.options.lanes);
+        return Math.floor((gridsterWidth - 20) / this.options.lanes);
     };
     GridsterService.prototype.calculateCellHeight = function () {
         var gridsterHeight = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).height);
@@ -315,10 +315,10 @@ var GridsterService = (function () {
     GridsterService.prototype.highlightPositionForItem = function (item) {
         var size = item.calculateSize(this);
         var position = item.calculatePosition(this);
-        this.$positionHighlight.style.width = size.width + 'px';
-        this.$positionHighlight.style.height = size.height + 'px';
-        this.$positionHighlight.style.left = position.left + 'px';
-        this.$positionHighlight.style.top = position.top + 'px';
+        this.$positionHighlight.style.width = size.width - 10 + 'px';
+        this.$positionHighlight.style.height = size.height - 10 + 'px';
+        this.$positionHighlight.style.left = position.left + 10 + 'px';
+        this.$positionHighlight.style.top = position.top + 10 + 'px';
         this.$positionHighlight.style.display = '';
         if (this.options.heightToFontSizeRatio) {
             this.$positionHighlight.style['font-size'] = this._fontSize;

@@ -335,7 +335,7 @@ export class GridsterService {
     private calculateCellWidth() {
         const gridsterWidth = parseFloat(window.getComputedStyle(this.gridsterComponent.$element).width);
 
-        return Math.floor( gridsterWidth / this.options.lanes);
+		return Math.floor( (gridsterWidth - 20) / this.options.lanes);
     }
 
     private calculateCellHeight() {
@@ -473,19 +473,19 @@ export class GridsterService {
     }
 
     private highlightPositionForItem (item: GridListItem) {
-        const size = item.calculateSize(this);
-        const position = item.calculatePosition(this);
+		const size = item.calculateSize(this);
+		const position = item.calculatePosition(this);
 
-        this.$positionHighlight.style.width = size.width + 'px';
-        this.$positionHighlight.style.height = size.height + 'px';
-        this.$positionHighlight.style.left = position.left + 'px';
-        this.$positionHighlight.style.top = position.top + 'px';
-        this.$positionHighlight.style.display = '';
+		this.$positionHighlight.style.width = size.width - 10 + 'px';
+		this.$positionHighlight.style.height = size.height - 10 + 'px';
+		this.$positionHighlight.style.left = position.left + 10 + 'px';
+		this.$positionHighlight.style.top = position.top + 10 + 'px';
+		this.$positionHighlight.style.display = '';
 
-        if (this.options.heightToFontSizeRatio) {
-            this.$positionHighlight.style['font-size'] = this._fontSize;
-        }
-    }
+		if (this.options.heightToFontSizeRatio) {
+			this.$positionHighlight.style['font-size'] = this._fontSize;
+		}
+	}
 
     public updateCachedItems () {
         // Notify the user with the items that changed since the previous snapshot
